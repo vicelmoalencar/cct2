@@ -1,10 +1,10 @@
 # Estágio de construção
-FROM node:18-alpine as build
+FROM node:18-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm install --verbose
 COPY . .
-RUN npm run build
+RUN npm run build || (echo "Build failed, showing logs:" && cat /app/logs/*.log && exit 1)
 
 # Estágio de produção
 FROM node:18-alpine
