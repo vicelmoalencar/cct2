@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install --verbose
 COPY . .
-RUN npm run build || (echo "Build failed, showing logs:" && cat /app/logs/*.log && exit 1)
+RUN npm run build || (echo "Build failed, showing logs:"; npm cache clean --force; npm install --verbose; npm run build || (echo "Retry failed, showing error logs:"; cat /app/logs/*.log; exit 1))
 
 # Estágio de produção
 FROM node:18-alpine
