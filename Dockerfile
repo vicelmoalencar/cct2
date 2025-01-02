@@ -4,7 +4,19 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install --verbose
 COPY . .
-RUN npm run build || (echo "Build failed, showing logs:"; npm cache clean --force; npm install --verbose; npm run build || (echo "Retry failed, showing error logs:"; cat /app/logs/*.log; exit 1))
+RUN mkdir -p /app/logs && \
+    npm run build > /app/logs/build.log 2>&1 || \
+    (echo "Build failed, showing logs:"; \
+     npm cache clean --force; \
+     npm install --verbose > /app/logs/install.log 2>&1; \
+     npm run build > /app/logs/build_retry.log 2>&1 || \
+     (echo "Retry failed, showing environment:"; \
+      echo "Node version:"; node -v; \
+      echo "NPM version:"; npm -v; \
+      echo "Build logs:"; cat /app/logs/build.log; \
+      echo "Install logs:"; cat /app/logs/install.log; \
+      echo "Retry logs:"; cat /app/logs/build_retry.log; \
+      exit 1))
 
 # Estágio de produção
 FROM node:18-alpine
